@@ -5,21 +5,18 @@ import matplotlib.pyplot as plt
 # plt.plot([1, 2, 3, 4, 5], [1, 2, 3, 4, 5])
 # plt.show()
 
-def P_full(P0, _lambda, t, P_ob, P_lt, Z): # полная вероятность
+def P_full(P0, _lambda, P_ob, P_lt, Z): # полная вероятность
     N = len(Z)
     restult = 0
-    for j,z in enumerate(Z):
-        restult+=Pt(P0, N, _lambda, t)* P_i(P_ob, P_lt, Z, j)
+    for j in range(N):
+        tmp = P0[j]* P_i(P_ob, P_lt, Z, j)
+        restult+=tmp
     return restult
 
 def P_baies(P, P_ob, P_lt, Z, index):
-    N = len(Z)
-    restult = 0
-    for j, z in enumerate(Z):
-        restult += P[j] * P_i(P_ob, P_lt, Z, j)
 
-    restult = (P[index]*P_i(P_ob, P_lt, Z, index))/restult
-    return restult
+    return P*P_i(P_ob, P_lt, Z, index)/P_full(Z, 0.5, P_ob, P_lt, Z)
+
 
 def Pt(P0, N, _lambda, t): #априорная вероятность
     return (P0-1/N)*np.exp((-1*_lambda*N*t)/(N-1))+1/N
@@ -33,38 +30,55 @@ def P_i(P_ob, P_lt, Z, index): #условная вероятность
     return tmp
 
 
-period = 2
+period = 12
+day = 2
 P_ob=0.9
 P_lt=0.05
+P0 = 0.9
+
+Z= [[1,0,0,0], [1,0,0,0], [0,0,1,0], [0,0,1,0], [1,0,0,0], [1,0,0,0]]
+# Z= [[1,0,0,0], [1,0,0,0], [1,0,0,0], [1,0,0,0], [1,0,0,0], [1,0,0,0]]
+d = []
+for i in range(period):
+    if i%day==0:
+        d.append(i)
+
+print(d)
+
+print(P_baies(Z[0][0], P_ob, P_lt, Z[0], 0))
+print(P_baies(Z[0][1], P_ob, P_lt, Z[0], 1))
+print(P_baies(Z[0][2], P_ob, P_lt, Z[0], 2))
+print(P_baies(Z[0][3], P_ob, P_lt, Z[0], 3))
+
+
+X = [[],[],[],[]]
+Y = [[],[],[],[]]
+P = (P_baies(Z[0][0], P_ob, P_lt, Z[0], 0))
 
 
 
-Z = [[0,1,0,0],[0,1,1,0],[1,0,0,0],[0,0,1,0],[1,0,0,0],[1,0,1,0],[1,0,0,0]]
+for t in range(len(Z[0])):
+    i = 0
+    k = 0
+    while i < period:
+        X[t].append(i)
 
+        if i in d:
+            P = P_baies(Z[k][t], P_ob, P_lt, Z[t], t)
+            j = 0
+            k=k+1
+        else:
+            P = Pt(P, len(Z[0]), 0.5, j)
 
+        Y[t].append(P)
+        i=i+0.5
+        j=j+0.5
 
-X = []
-Y = []
-for i in range(len(Z[0])):
-    X.append([])
-    Y.append([])
-    Y[i].append(P_baies(Z[0], P_ob, P_lt, Z[math.floor(0/period)], i))
-
-print(X,Y)
-
-for index, x in enumerate(range(0,14)):
-    for i in range(len(Z[0])):
-        X[i].append(x)
-        tmp = []
-        for j in range(len(Z[0])):
-            tmp.append(Y[j][index])
-        Y[i].append(Pt(P_baies(tmp, P_ob, P_lt, Z[math.floor(index/period)], 1), 4, 0.5, x))
 
 print(Y)
-print(X)
-plt.plot(X[1][:14], Y[1][:14], ':b')
 
-# plt.plot(x, P_i(P_ob, P_lt, Z[np.round(float(x/period))], 0))
-# plt.plot(x, Pt(0.9, 5, 0.5, x), ':b')
+plt.plot(X[0], Y[0])
+plt.plot(X[1], Y[1], ":r")
+plt.plot(X[2], Y[2], ":b")
+
 plt.show()
-# print(P_z_xi(Z, 0.9, 0.1, 0,1))
